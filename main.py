@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-
+import openai
 
 def web_scraper_table():
     url = "https://thepiratebay10.org/top/201"  # Replace with the URL you want to scrape
@@ -22,6 +22,16 @@ def web_scraper_table():
         print("Failed to fetch data from the web.")
         return None
 
+
+def extract_name_from_text(text):
+    openai.api_key = "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"
+    response = openai.ChatCompletion.create(
+        engine="gpt-3.5-turbo",  # You can adjust the engine
+        prompt=f"Extract the name of the movie or game from the text:\n{text}\nName:",
+        temperature=0,
+        max_tokens=50
+    )
+    return response.choices[0].text.strip()
 
 
 # Test the web scraper function
@@ -45,7 +55,11 @@ for j in scraped_data.find_all("tr")[1:]:
     length = len(mydata)
     mydata.loc[length] = row
 
+mydata['Name'] = mydata['Name'].apply(extract_name_from_text)
+
 # Export to csv
 mydata.to_csv("tpb.csv", index=False)
 # Try to read csv
 mydata2 = pd.read_csv("tpb.csv")
+
+print(headers)
