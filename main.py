@@ -24,14 +24,20 @@ def web_scraper_table():
 
 
 def extract_name_from_text(text):
-    openai.api_key = "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"
+    openai.api_key = "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"
+
+    messages = [
+        {"role": "user", "content": text },
+        {"role": "assistant", "content": "Extract the name of the movie or game and nothing else."}
+    ]
+
     response = openai.ChatCompletion.create(
-        engine="gpt-3.5-turbo",  # You can adjust the engine
-        prompt=f"Extract the name of the movie or game from the text:\n{text}\nName:",
+        model="gpt-3.5-turbo",
+        messages=messages,
         temperature=0,
         max_tokens=50
     )
-    return response.choices[0].text.strip()
+    return response.choices[0].message['content'].strip()
 
 
 # Test the web scraper function
@@ -47,19 +53,25 @@ for i in scraped_data.find("tr", {"class": "header"}):
         headers.append("Name")
 
 mydata = pd.DataFrame(columns = headers)
+max_requests = 10
 
 # Create a for loop to fill mydata
 for j in scraped_data.find_all("tr")[1:]:
+    if max_requests <= 0:
+        break  # Stop if max requests limit is reached
+
     row_data = j.find_all("td")
     row = [i.text for i in row_data]
     length = len(mydata)
     mydata.loc[length] = row
 
-mydata['Name'] = mydata['Name'].apply(extract_name_from_text)
+    # Extract name from the "Name" value and assign it back to the DataFrame
+    extracted_name = extract_name_from_text(row[headers.index("Name")])
+    mydata.at[length, 'Name'] = extracted_name
+
+    max_requests -= 1  # Decrement the remaining requests count
 
 # Export to csv
 mydata.to_csv("tpb.csv", index=False)
-# Try to read csv
-mydata2 = pd.read_csv("tpb.csv")
 
-print(headers)
+
