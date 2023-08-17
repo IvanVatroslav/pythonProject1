@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import openai
+from chatgpt_key import key
 
 def web_scraper_table():
     url = "https://thepiratebay10.org/top/201"  # Replace with the URL you want to scrape
@@ -24,7 +25,7 @@ def web_scraper_table():
 
 
 def extract_name_from_text(text):
-    openai.api_key = "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"
+    openai.api_key = key
 
     messages = [
         {"role": "user", "content": text },
